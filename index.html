@@ -11,13 +11,26 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="crt-intro" aria-hidden="true">
+  <div id="crt-intro">
     <canvas id="crt-noise" width="160" height="120"></canvas>
     <div class="crt-beam"><canvas id="crt-beam-noise" width="160" height="120"></canvas></div>
-    <div class="osd osd-input">INPUT 1</div>
-    <div class="osd osd-sound"><span>▶STEREO</span><span>&nbsp;MONO</span></div>
-    <div class="crt-vignette"></div>
+    <button class="power" type="button" aria-label="Turn on">
+      <span class="power-led"></span>
+      <span class="power-label">PRESS POWER</span>
+    </button>
+    <div class="osd osd-input" id="osd-input">INPUT 1</div>
+    <div class="osd osd-sound" role="radiogroup" aria-label="Sound">
+      <button type="button" role="radio" data-sound="stereo">STEREO</button>
+      <button type="button" role="radio" data-sound="mono">MONO</button>
+      <button type="button" role="radio" data-sound="mute">MUTE</button>
+    </div>
+    <div class="osd osd-hint">
+      <span class="hint-keys">◀ ▶ SELECT &nbsp; ENTER OK</span>
+      <span class="hint-touch">TAP TO SELECT</span>
+    </div>
+    <button class="intro-skip" id="intro-skip" type="button">skip intro</button>
   </div>
+  <div class="crt-overlay" aria-hidden="true"></div>
   <div class="window">
     <div class="titlebar">
       <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
@@ -27,11 +40,12 @@
       <div id="output" aria-live="polite"></div>
       <div class="input-line">
         <span class="prompt" id="prompt"></span>
-        <input id="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input" autofocus>
+        <input id="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input">
       </div>
     </main>
   </div>
   <script src="content.js"></script>
+  <script src="sound.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

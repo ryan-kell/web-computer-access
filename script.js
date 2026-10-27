@@ -205,6 +205,17 @@ const commands = {
     },
   },
 
+  sound: {
+    desc: `sound mode (${Sound.MODES.join(', ')})`,
+    run([mode]) {
+      if (!mode) {
+        printText(`Sound is set to ${Sound.getMode()}.`);
+        return print('Options: ' + Sound.MODES.map((m) => cmdLink('sound ' + m, m)).join(' '));
+      }
+      if (!Sound.setMode(mode)) printText(`sound: unknown mode '${mode}'`, 'error');
+    },
+  },
+
   echo: {
     desc: 'print text',
     run(args) { printText(args.join(' ')); },
@@ -293,6 +304,8 @@ function complete() {
 }
 
 input.addEventListener('keydown', (e) => {
+  if (e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace') Sound.click();
+
   if (e.key === 'Enter') {
     runCommand(input.value);
     input.value = '';
@@ -341,13 +354,22 @@ try {
   if (THEMES.includes(saved)) setTheme(saved);
 } catch {}
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Phases: off → warming → menu → switching. Each step adds a class to #crt-intro
+// that drives the CSS animations.
 function playIntro() {
   const intro = document.getElementById('crt-intro');
+  const osdInput = document.getElementById('osd-input');
+  const osdSound = intro.querySelector('.osd-sound');
+  const options = [...osdSound.querySelectorAll('[data-sound]')];
   const canvas = document.getElementById('crt-noise');
   const ctx = canvas.getContext('2d');
   const beamCtx = document.getElementById('crt-beam-noise').getContext('2d');
   const image = ctx.createImageData(canvas.width, canvas.height);
   let frame;
+  let phase = 'off';
+  let selected = 0;
 
   const drawNoise = () => {
     const px = image.data;
@@ -360,27 +382,94 @@ function playIntro() {
     frame = requestAnimationFrame(drawNoise);
   };
 
+  const select = (i) => {
+    selected = (i + options.length) % options.length;
+    options.forEach((option, j) => {
+      option.classList.toggle('selected', j === selected);
+      option.setAttribute('aria-checked', j === selected);
+    });
+  };
+
   const finish = () => {
+    if (!intro.isConnected) return;
     cancelAnimationFrame(frame);
+    Sound.stopHiss();
     intro.remove();
-    window.removeEventListener('keydown', skip, true);
+    window.removeEventListener('keydown', onKey, true);
+    document.querySelector('.window').classList.remove('tune-in');
     input.focus();
   };
 
-  // Any key or click skips the intro without typing into the terminal.
-  const skip = (e) => {
-    e.preventDefault();
+  const powerOn = async () => {
+    phase = 'warming';
+    intro.classList.add('on');
+    Sound.powerOn();
+    drawNoise();
+    await wait(2500);
+    if (intro.isConnected) Sound.setHiss(0.02, 2);
+  };
+
+  const confirm = async () => {
+    phase = 'switching';
+    Sound.setMode(options[selected].dataset.sound);
+    Sound.blip(1400);
+    intro.classList.add('chosen');
+
+    await wait(500);
+    if (!intro.isConnected) return;
+    intro.classList.add('confirmed');
+    osdInput.textContent = 'INPUT 2';
+    Sound.blip(1000);
+
+    await wait(1000);
+    if (!intro.isConnected) return;
+    intro.classList.add('switching');
+    Sound.setHiss(0.08, 0.25);
+
+    await wait(600);
+    if (!intro.isConnected) return;
+    intro.classList.add('tuned');
+    document.querySelector('.window').classList.add('tune-in');
+    Sound.stopHiss(1.5);
+
+    await wait(800);
     finish();
+  };
+
+  // While the intro is up, it owns the keyboard so nothing is typed into the terminal.
+  const onKey = (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const ok = e.key === 'Enter' || e.key === ' ';
+    if (e.key === 'Escape') finish();
+    else if (phase === 'off' && ok) powerOn();
+    else if (phase === 'menu') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { select(selected - 1); Sound.blip(900); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { select(selected + 1); Sound.blip(900); }
+      else if (ok) confirm();
+    }
   };
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return finish();
 
-  drawNoise();
-  intro.addEventListener('animationend', (e) => {
-    if (e.animationName === 'crt-off') finish();
+  select(0);
+  osdSound.addEventListener('animationend', (e) => {
+    if (e.animationName === 'osd-in' && phase === 'warming') {
+      phase = 'menu';
+      intro.classList.add('menu');
+    }
   });
-  intro.addEventListener('pointerdown', skip);
-  window.addEventListener('keydown', skip, true);
+  intro.addEventListener('click', (e) => {
+    const option = e.target.closest('[data-sound]');
+    if (e.target.closest('#intro-skip')) finish();
+    else if (phase === 'off') powerOn();
+    else if (phase === 'menu' && option) {
+      select(options.indexOf(option));
+      confirm();
+    }
+  });
+  window.addEventListener('keydown', onKey, true);
 }
 
 playIntro();
