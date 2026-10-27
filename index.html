@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ryan — Terminal</title>
+  <meta name="description" content="Personal website of Ryan, styled like a Linux terminal.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      <span class="titlebar-text" id="title"></span>
+    </div>
+    <main class="terminal" id="terminal">
+      <div id="output" aria-live="polite"></div>
+      <div class="input-line">
+        <span class="prompt" id="prompt"></span>
+        <input id="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input" autofocus>
+      </div>
+    </main>
+  </div>
+  <script src="content.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
