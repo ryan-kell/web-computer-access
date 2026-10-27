@@ -132,6 +132,114 @@ a:hover { color: var(--accent); }
 
 .ls { display: flex; flex-wrap: wrap; column-gap: 24px; }
 
+/* ---------- CRT power-on intro ---------- */
+
+#crt-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
+  animation: crt-off 1.2s ease-in 7s forwards;
+}
+
+/* Static that fades in as the tube "warms up" */
+#crt-noise {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  opacity: 0;
+  animation: crt-warm 4s ease-out 3s forwards;
+}
+
+/* The bright line that expands to fill the screen */
+.crt-beam {
+  position: absolute;
+  inset: 0;
+  background: #f2fff2;
+  box-shadow: 0 0 40px 10px #c8ffc8;
+  transform: scale(0, 0.004);
+  opacity: 0;
+  isolation: isolate;
+  animation: crt-beam 3.4s ease-out 0.8s forwards;
+}
+
+/* Static on the beam itself; multiply keeps it from showing outside the beam */
+#crt-beam-noise {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+}
+
+.crt-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.85) 100%);
+  pointer-events: none;
+}
+
+.osd {
+  position: absolute;
+  font-family: 'VT323', monospace;
+  font-size: clamp(32px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: 0.05em;
+  color: #3dff3d;
+  text-shadow: 0 0 6px #3dff3d, 0 0 18px rgba(61, 255, 61, 0.5);
+  opacity: 0;
+  animation: osd-in 0.3s steps(2) 5s forwards, osd-flicker 6s linear 5.4s infinite;
+}
+
+.osd-input { top: 9%; right: 9%; }
+
+.osd-sound {
+  bottom: 11%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.5em;
+}
+
+@keyframes crt-beam {
+  0%   { opacity: 1; transform: scale(0, 0.004); }
+  41%  { opacity: 1; transform: scale(1, 0.004); }
+  82%  { opacity: 1; transform: scale(1, 1); }
+  100% { opacity: 0; transform: scale(1, 1); }
+}
+
+@keyframes crt-warm {
+  0%   { opacity: 0;    filter: brightness(0.3); }
+  60%  { opacity: 0.38; filter: brightness(1.3); }
+  100% { opacity: 0.18; filter: brightness(1); }
+}
+
+@keyframes osd-in {
+  to { opacity: 1; }
+}
+
+@keyframes osd-flicker {
+  0%, 100% { opacity: 1; }
+  48%      { opacity: 0.92; }
+  50%      { opacity: 0.75; }
+  52%      { opacity: 0.95; }
+}
+
+@keyframes crt-off {
+  0%   { opacity: 1; filter: brightness(1); }
+  30%  { opacity: 1; filter: brightness(1.8); }
+  100% { opacity: 0; filter: brightness(1); }
+}
+
 @media (max-width: 640px) {
   html, body { font-size: 13px; }
   .window { height: 100%; margin: 0; border-radius: 0; }

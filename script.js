@@ -341,6 +341,49 @@ try {
   if (THEMES.includes(saved)) setTheme(saved);
 } catch {}
 
+function playIntro() {
+  const intro = document.getElementById('crt-intro');
+  const canvas = document.getElementById('crt-noise');
+  const ctx = canvas.getContext('2d');
+  const beamCtx = document.getElementById('crt-beam-noise').getContext('2d');
+  const image = ctx.createImageData(canvas.width, canvas.height);
+  let frame;
+
+  const drawNoise = () => {
+    const px = image.data;
+    for (let i = 0; i < px.length; i += 4) {
+      px[i] = px[i + 1] = px[i + 2] = Math.random() * 255;
+      px[i + 3] = 255;
+    }
+    ctx.putImageData(image, 0, 0);
+    beamCtx.putImageData(image, 0, 0);
+    frame = requestAnimationFrame(drawNoise);
+  };
+
+  const finish = () => {
+    cancelAnimationFrame(frame);
+    intro.remove();
+    window.removeEventListener('keydown', skip, true);
+    input.focus();
+  };
+
+  // Any key or click skips the intro without typing into the terminal.
+  const skip = (e) => {
+    e.preventDefault();
+    finish();
+  };
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return finish();
+
+  drawNoise();
+  intro.addEventListener('animationend', (e) => {
+    if (e.animationName === 'crt-off') finish();
+  });
+  intro.addEventListener('pointerdown', skip);
+  window.addEventListener('keydown', skip, true);
+}
+
+playIntro();
 document.title = `${SITE.name} — Terminal`;
 renderPrompt();
 print(`Welcome to <span class="accent">${escapeHtml(SITE.name)}</span>'s corner of the internet.`);

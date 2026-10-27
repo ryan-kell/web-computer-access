@@ -7,10 +7,17 @@
   <meta name="description" content="Personal website of Ryan, styled like a Linux terminal.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="crt-intro" aria-hidden="true">
+    <canvas id="crt-noise" width="160" height="120"></canvas>
+    <div class="crt-beam"><canvas id="crt-beam-noise" width="160" height="120"></canvas></div>
+    <div class="osd osd-input">INPUT 1</div>
+    <div class="osd osd-sound"><span>▶STEREO</span><span>&nbsp;MONO</span></div>
+    <div class="crt-vignette"></div>
+  </div>
   <div class="window">
     <div class="titlebar">
       <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
